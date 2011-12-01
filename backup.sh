@@ -94,7 +94,7 @@ gzip -f $TODAY.tar
 msg "Rotating backups..."
 deleteOldestFile $DAILY_BACKUP_DIR $DAILY_BACKUP_NUMBER
 
-if [ `date +%a` == "Mon" ]; then
+if [ `date +%a` = "Mon" ]; then
 	cp $TODAY.tar.gz $WEEKLY_BACKUP_DIR/$TODAY.tar.gz
 	deleteOldestFile $WEEKLY_BACKUP_DIR $WEEKLY_BACKUP_NUMBER
 fi
