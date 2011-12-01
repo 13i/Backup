@@ -1,6 +1,10 @@
 #!/bin/bash
 
+# Today's date
 TODAY=`date +%Y-%m-%d`
+
+# Current backup.sh dir
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Delete the oldest file in directory $1 if number of files is bigger than $2
 function deleteOldestFile {
@@ -11,63 +15,83 @@ function deleteOldestFile {
 	done
 }
 
+# Print a message if $DEBUG > 0
+function msg {
+	if $DEBUG; then
+		echo $1
+	fi
+}
+
+# Prints an error and exits
+function error {
+	echo $1
+	exit
+}
+
+# Create a dir if it doesn't exists
+function mkdirIfNoExists {
+	if [ ! -d $1 ]; then
+	   	msg "$1 does not exists"
+	    if mkdir $1; then
+	    	msg "$1 created"
+	    else
+	    	msg "$1 can not be created"
+	    	exit
+	    fi
+	else
+		msg "$1 exists"
+	fi
+}
+
 echo "Backup task launched"
 echo "===================="
 
-echo "Reading configuration file..."
-if [ ! -f ./backup.cfg ]; then
-	echo "Backup config file does not exists, please create backup.cfg"
+CONFIG_FILE="$DIR/backup.cfg"
+msg "Reading configuration file..."
+if [ ! -f $CONFIG_FILE ]; then
+	error "Backup config file does not exists, please create $CONFIG_FILE"
 	exit
 fi
 
-source "./backup.cfg"
+source $CONFIG_FILE
 
 DAILY_BACKUP_DIR="$BACKUP_DIR/daily"
 WEEKLY_BACKUP_DIR="$BACKUP_DIR/weekly"
 MONTHLY_BACKUP_DIR="$BACKUP_DIR/monthly"
 
-echo "Files Dir			$FILES_DIR"
-echo "Backup Dir		$BACKUP_DIR"
-echo "DB Host			$DB_HOST"
-echo "DB Name			$DB_NAME"
-echo "DB User			$DB_USER"
-echo "DB Password		****"
+msg "Files Dir			$FILES_DIR"
+msg "Backup Dir		$BACKUP_DIR"
+msg "DB Host			$DB_HOST"
+msg "DB Name			$DB_NAME"
+msg "DB User			$DB_USER"
+msg "DB Password		####"
 
-echo "Checking folders defined in config existance..."
-if [ ! -d $BACKUP_DIR ]; then
-	echo "Backup directory does not exists : $BACKUP_DIR"
-	exit
-fi
-if [ ! -d $FILES_DIR ]; then
-	echo "Files directory does not exists : $FILES_DIR"
-	exit
-fi
+msg "Checking folders defined in config existance..."
+mkdirIfNoExists $BACKUP_DIR
+mkdirIfNoExists $FILES_DIR
 
-echo "Checking backup folders existance..."
+msg "Checking backup folders existance..."
 for dir in $DAILY_BACKUP_DIR $WEEKLY_BACKUP_DIR $MONTHLY_BACKUP_DIR
 do
-	if [ ! -d $dir ]; then
-		echo "$dir created"
-	    mkdir -p $dir
-	fi
+	mkdirIfNoExists $dir
 done
 
-echo "Archiving files..."
+msg "Archiving files..."
 cd $FILES_DIR
 tar cf $DAILY_BACKUP_DIR/$TODAY.tar *
 
-echo "Dumping database..."
+msg "Dumping database..."
 cd $DAILY_BACKUP_DIR
 mysqldump -h $DB_HOST -u $DB_USER -p$DB_PASSWORD $DB_NAME > database.sql
 
-echo "Adding database dump to files archive..."
-tar rvf $TODAY.tar database.sql
+msg "Adding database dump to files archive..."
+tar rf $TODAY.tar database.sql
 rm -f database.sql
 
-echo "Zipping archive..."
+msg "Zipping archive..."
 gzip -f $TODAY.tar
 
-echo "Rotating backups..."
+msg "Rotating backups..."
 deleteOldestFile $DAILY_BACKUP_DIR $DAILY_BACKUP_NUMBER
 
 if [ `date +%a` == "Mon" ]; then
@@ -81,5 +105,4 @@ if [ `date +%d` = "01" ]; then
 fi
 
 echo "Backup successful ;)"
-
 
