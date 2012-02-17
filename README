@@ -1,0 +1,25 @@
+Easy hosting backup
+
+Features :
+- Easy instalation/configuration
+- Backup a folder and a DB in a single tar.gz file
+- Keep daily, weekly, monthly backups
+- Configure how many of backups to keep
+
+Install :
+- Copy files in a private folder on you webserver
+- Edit backup.cfp to suit your needs
+- Setup a daily cron job to launch backup.sh
+- Relax...
+
+Tested on :
+- Vps.net
+- Rackspace CloudSites
+- Ubuntu 11.10
+
+Todo :
+- Backup multiple folders/dbs
+- Upload backups to a remote server using FTP/SSH
+
+
+
