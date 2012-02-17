@@ -60,7 +60,7 @@ WEEKLY_BACKUP_DIR="$BACKUP_DIR/weekly"
 MONTHLY_BACKUP_DIR="$BACKUP_DIR/monthly"
 
 msg "Files Dir			$FILES_DIR"
-msg "Backup Dir		$BACKUP_DIR"
+msg "Backup Dir			$BACKUP_DIR"
 msg "DB Host			$DB_HOST"
 msg "DB Name			$DB_NAME"
 msg "DB User			$DB_USER"
@@ -105,4 +105,5 @@ if [ `date +%d` = "01" ]; then
 fi
 
 echo "Backup successful ;)"
+
 
