@@ -4,7 +4,16 @@
 TODAY=`date +%Y-%m-%d`
 
 # Current backup.sh dir
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# http://stackoverflow.com/a/246128
+SOURCE="${BASH_SOURCE[0]}"
+DIR="$( dirname "$SOURCE" )"
+while [ -h "$SOURCE" ]
+do 
+	SOURCE="$(readlink "$SOURCE")"
+	[[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+	DIR="$( cd -P "$( dirname "$SOURCE"  )" && pwd )"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 # Delete the oldest file in directory $1 if number of files is bigger than $2
 function deleteOldestFile {
