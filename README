@@ -18,8 +18,9 @@ Tested on :
 - Ubuntu 11.10
 
 Todo :
-- Backup multiple folders/dbs
+- Backup multiple folders/dbs [DONE]
 - Upload backups to a remote server using FTP/SSH
+- Log backup activity and send report erros to root mail
 
 
 
