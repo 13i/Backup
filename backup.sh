@@ -68,10 +68,16 @@ DAILY_BACKUP_DIR="$BACKUP_DIR/daily"
 WEEKLY_BACKUP_DIR="$BACKUP_DIR/weekly"
 MONTHLY_BACKUP_DIR="$BACKUP_DIR/monthly"
 
-msg "Files Dir			$FILES_DIR"
+for i in "${FILES_DIR[@]}"
+do
+	msg "Files Dir			$i"
+done
 msg "Backup Dir			$BACKUP_DIR"
 msg "DB Host			$DB_HOST"
-msg "DB Name			$DB_NAME"
+for i in "${DB_NAME[@]}"
+do
+	msg "DB Name			$i"
+done
 msg "DB User			$DB_USER"
 msg "DB Password		####"
 
@@ -86,16 +92,22 @@ do
 done
 
 msg "Archiving files..."
-cd $FILES_DIR
-tar cf $DAILY_BACKUP_DIR/$TODAY.tar *
+FOLDERS=""
+for FOLDER_NAME in "${FILES_DIR[@]}"
+do
+	FOLDERS+="$FOLDER_NAME "
+done
+tar -cf $DAILY_BACKUP_DIR/$TODAY.tar $FOLDERS
 
 msg "Dumping database..."
 cd $DAILY_BACKUP_DIR
-mysqldump -h $DB_HOST -u $DB_USER -p$DB_PASSWORD $DB_NAME > database.sql
-
-msg "Adding database dump to files archive..."
-tar rf $TODAY.tar database.sql
-rm -f database.sql
+for i in "${DB_NAME[@]}"
+do
+	mysqldump -h $DB_HOST -u $DB_USER -p$DB_PASSWORD $i > $i.sql
+	msg "Adding $i database dump to files archive..."
+	tar rf "$TODAY.tar" $i.sql
+	rm -f $i.sql
+done
 
 msg "Zipping archive..."
 gzip -f $TODAY.tar
