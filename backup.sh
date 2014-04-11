@@ -52,45 +52,44 @@ function mkdirIfNoExists {
 	fi
 }
 
-echo "Backup task launched"
-echo "===================="
+# Notify of backup launch
+msg "Backup task launched"
+msg "===================="
 
+# Read config file
 CONFIG_FILE="$DIR/backup.cfg"
 msg "Reading configuration file..."
 if [ ! -f $CONFIG_FILE ]; then
 	error "Backup config file does not exists, please create $CONFIG_FILE"
 	exit
 fi
-
 source $CONFIG_FILE
 
+# Configure backup directories
+msg "Backup Dir			$BACKUP_DIR"
 DAILY_BACKUP_DIR="$BACKUP_DIR/daily"
 WEEKLY_BACKUP_DIR="$BACKUP_DIR/weekly"
 MONTHLY_BACKUP_DIR="$BACKUP_DIR/monthly"
 
+# List directories to backup
 for i in "${FILES_DIR[@]}"
 do
 	msg "Files Dir			$i"
 done
-msg "Backup Dir			$BACKUP_DIR"
-msg "DB Host			$DB_HOST"
-for i in "${DB_NAME[@]}"
-do
-	msg "DB Name			$i"
-done
-msg "DB User			$DB_USER"
-msg "DB Password		####"
 
+# Create backup dir if it does not exist
 msg "Checking folders defined in config existance..."
 mkdirIfNoExists $BACKUP_DIR
 mkdirIfNoExists $FILES_DIR
 
+# Create daily/weekly/monthly backup dirs if they do not exist
 msg "Checking backup folders existance..."
 for dir in $DAILY_BACKUP_DIR $WEEKLY_BACKUP_DIR $MONTHLY_BACKUP_DIR
 do
 	mkdirIfNoExists $dir
 done
 
+# Create the archive
 msg "Archiving files..."
 FOLDERS=""
 for FOLDER_NAME in "${FILES_DIR[@]}"
@@ -99,19 +98,32 @@ do
 done
 tar -cf $DAILY_BACKUP_DIR/$TODAY.tar $FOLDERS
 
-msg "Dumping database..."
+
+# Dump databases and add them to the archive
 cd $DAILY_BACKUP_DIR
-for i in "${DB_NAME[@]}"
+for dbconfig in "${DBS[@]}"
 do
-	mysqldump -h $DB_HOST -u $DB_USER -p$DB_PASSWORD $i > $i.sql
-	msg "Adding $i database dump to files archive..."
-	tar rf "$TODAY.tar" $i.sql
-	rm -f $i.sql
+	PARTS=(${dbconfig//|/ })
+	msg "DB Host			${PARTS[0]}"
+	msg "DB User			${PARTS[1]}"
+	msg "DB Password		###"
+	DB_NAMES=(${PARTS[3]//,/ })
+	for dbname in "${DB_NAMES[@]}"
+	do
+		msg "DB Name			$dbname"
+		msg "Dumping database..."
+		mysqldump -h ${PARTS[0]} -u ${PARTS[1]} -p${PARTS[2]} $dbname > $dbname.sql
+		msg "Adding $dbname database dump to files archive..."
+		tar rf "$TODAY.tar" $dbname.sql
+		rm -f $dbname.sql
+	done
 done
 
+# Compress the archive
 msg "Zipping archive..."
 gzip -f $TODAY.tar
 
+# Rotate backups
 msg "Rotating backups..."
 deleteOldestFile $DAILY_BACKUP_DIR $DAILY_BACKUP_NUMBER
 
@@ -125,6 +137,6 @@ if [ `date +%d` = "01" ]; then
 	deleteOldestFile $MONTHLY_BACKUP_DIR $MONTHLY_BACKUP_NUMBER
 fi
 
-echo "Backup successful ;)"
+msg "Backup successful ;)"
 
 
