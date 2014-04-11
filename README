@@ -2,7 +2,7 @@ Easy hosting backup
 
 Features :
 - Easy instalation/configuration
-- Backup a folder and a DB in a single tar.gz file
+- Backup folders and a DBs in a single tar.gz file
 - Keep daily, weekly, monthly backups
 - Configure how many of backups to keep
 
@@ -13,9 +13,9 @@ Install :
 - Relax...
 
 Tested on :
-- Vps.net
 - Rackspace CloudSites
-- Ubuntu 11.10
+- Ubuntu 11/12/13
+- OVH shared hosting
 
 Todo :
 - Backup multiple folders/dbs [DONE]
